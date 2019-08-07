@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -56,7 +57,16 @@ namespace TestProject.Repository
 
         public bool Update(SampleModel model)
         {
-            throw new NotImplementedException();
+            try
+            {
+                _ctx.Update(model);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
+
     }
 }

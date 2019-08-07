@@ -24,16 +24,20 @@ namespace TestProject.Controllers
 
         [HttpGet]
         [Route("")]
+
         public object Get()
         {
             try
             {
                 var result = TheRepository.GetAllSampleData();
+                if (result.Count() <= 0)
+                    return NoContent();
+
                 return result;
             }
             catch(Exception ex)
             {
-                return ex.Message + " " + ex.StackTrace;
+                return HandleError(ex);
             }
         }
 
@@ -44,17 +48,20 @@ namespace TestProject.Controllers
             try
             {
                 var result = TheRepository.GetSampleData(id);
+                if (result == null)
+                    return BadRequest("Record does not exist");
+
                 return result;
             }
             catch (Exception ex)
             {
-                return ex.Message + " " + ex.StackTrace;
+                return HandleError(ex);
             }
         }
 
         [HttpPost]
         [Route("")]
-        public HttpResponseMessage Post([FromBody]SampleViewModel model)
+        public IActionResult Post([FromBody]SampleViewModel model)
         {
             SampleModel sample = new SampleModel
             {
@@ -63,27 +70,46 @@ namespace TestProject.Controllers
             };
 
             if(sample == null)
-                return new HttpResponseMessage(HttpStatusCode.BadRequest);
+                return BadRequest(ApiResponse<string>(message: "No data found"));
             try
             {
                 if(TheRepository.Insert(sample) && TheRepository.SaveAll())
                 {
-                    return new HttpResponseMessage(HttpStatusCode.Created);
+                    return Created("Successfully Created",sample);
                 }
             }
             catch(Exception ex)
             {
                 //TODO Logging
-                return new HttpResponseMessage(HttpStatusCode.BadRequest);
+                return HandleError(ex);
             }
 
-            return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+            return BadRequest(ApiResponse<string>(message: "Something went wrong"));
         }
 
-        //public static HttpResponseMessage CreateResponse<T>(this HttpRequestMessage requestMessage, HttpStatusCode statusCode, T content)
-        //{
-        //    return new HttpResponseMessage() { StatusCode = statusCode, Content = new StringContent(JsonConvert.SerializeObject(content))
-        //    };
-        //}
+        [HttpPost]
+        [Route("update/{id}")]
+        public IActionResult Update([FromBody]SampleViewModel model, int id)
+        {
+            try
+            {
+                var result = TheRepository.GetSampleData(id);
+                if (model == null)
+                    return BadRequest(ApiResponse<string>(message: "No data found"));
+                result.name = model.name;
+                result.note = model.note;
+
+                if(TheRepository.Update(result) && TheRepository.SaveAll())
+                {
+                    return Ok(ApiResponse<object>(result));
+                }
+            }
+            catch(Exception ex)
+            {
+                return HandleError(ex);
+            }
+
+            return BadRequest(ApiResponse<string>(message: "Something went wrong"));
+        }
     }
 }
