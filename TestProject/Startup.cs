@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using TestProject.Context;
 using TestProject.Repository;
+using TestProject.Services;
 
 namespace TestProject
 {
@@ -33,6 +34,7 @@ namespace TestProject
             services.AddDbContext<SampleDbContext>(item => item.UseSqlServer(Configuration.GetConnectionString("myconn")));
 
             services.AddScoped<ISampleRepository, SampleRepository>();
+            services.AddScoped<IFileUploadService, FileUploadService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

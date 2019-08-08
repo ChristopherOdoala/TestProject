@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using TestProject.Model;
 using TestProject.Model.ViewModel;
 using TestProject.Repository;
+using TestProject.Services;
 
 namespace TestProject.Controllers
 {
@@ -16,10 +17,11 @@ namespace TestProject.Controllers
     [ApiController]
     public class SamplesController : BaseApiController
     {
-        public SamplesController(ISampleRepository repo)
+        IFileUploadService _service;
+        public SamplesController(ISampleRepository repo, IFileUploadService service)
             :base(repo)
         {
-
+            _service = service;
         }
 
         [HttpGet]
@@ -110,6 +112,17 @@ namespace TestProject.Controllers
             }
 
             return BadRequest(ApiResponse<string>(message: "Something went wrong"));
+        }
+
+        [HttpPost]
+        [Route("upload")]
+        public IActionResult Upload([FromBody] FileUploadModel model)
+        {
+            var res = _service.Upload(model);
+            if (res)
+                return Ok();
+            else
+                return BadRequest();
         }
     }
 }
